@@ -123,20 +123,17 @@ res.redirect("/");
 app.get("/posts/:postID",function(req,res){
   let chk = (req.params.postID);
 
-  let err = 1;
+  
 
   Post.findOne({_id:chk},function(err,post){
     if(!err){
       res.render("post",{postTitle:post.title,postBody:post.content});
-     err=0;
+     
     }
 
 
   });
 
-  if(err == 1 ){
-    res.render("error");
-  }
 });
 
 
