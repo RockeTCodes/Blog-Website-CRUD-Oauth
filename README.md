@@ -8,3 +8,7 @@ ejs
 body-parser
 lodash
 mongoose
+
+Checkout this web app here : https://enchanting-jay-trunks.cyclic.app
+
+There might be some delay in post updation or deletion due to site being hosted on free teir servers .
