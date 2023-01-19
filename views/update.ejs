@@ -1,0 +1,19 @@
+<%- include("partials/header") -%>
+
+<h1>YOU CAN UPDATE POSTS FROM HERE</h1>
+
+
+<%posts.forEach(function(post){%>
+   <form action="/update" method="post">
+     <h1><%=post.title%></h1>
+     <p><%=post.content.substring(0,100)+"..."%></p>
+     <button type="submit" class="btn btn-primary" name="update" value="<%=post._id%>" >Update</button>
+     <br />
+     <br />
+
+     </form>
+
+
+<%});%>
+
+<%- include("partials/footer") -%>
