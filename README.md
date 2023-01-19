@@ -7,3 +7,4 @@ I have implemented google Oauth2.0 for logging in using google.
 For running this locally cd into the project directory and 
 "npm install" to install the dependencies .
 and "nodemon" or "node app.js" to run this web app.
+Hosted on cyclic  at https://lonely-frog-dungarees.cyclic.app/
