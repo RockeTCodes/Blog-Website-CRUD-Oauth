@@ -82,6 +82,7 @@ const userSchema = new mongoose.Schema({
   email:String,
   googleId:String,
   username:String,
+  posts:[postSchema]
 });
 
 
@@ -125,7 +126,7 @@ passport.deserializeUser(function(id,done){
 passport.use(new GoogleStrategy({
     clientID:    "199248773457-3vdt119b9tvj7oo2ap4ho1u5hghvp424.apps.googleusercontent.com",
     clientSecret: "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",
-    callbackURL: "https://lonely-frog-dungarees.cyclic.app/auth/google/logout",
+    callbackURL: "http://localhost:3000/auth/google/logout",
     passReqToCallback   : true
   },
   function(request, accessToken, refreshToken, profile, done) {
@@ -137,22 +138,6 @@ passport.use(new GoogleStrategy({
 ));
 
 
-
-
-
-
-
-//Homepage
-app.get("/",function(req,res){
-
-
-Post.find({},function(err,posts){
-  if(!err){
-    res.render("home",{homeStartingContent:homeStartingContent,posts:posts});
-  }
-});
-
-});
 
 
 
@@ -172,9 +157,36 @@ app.get( "/auth/google/logout",
 
 
 
+
+
+//Homepage
+app.get("/",function(req,res){
+
+let text = "LOGIN";
+let path = "login";
+if(req.isAuthenticated()){
+  text="LOGOUT";
+  path="logmeout"
+}
+
+Post.find({},function(err,posts){
+  if(!err){
+    res.render("home",{homeStartingContent:homeStartingContent,posts:posts,text:text,path:path});
+  }
+});
+
+});
+
+
 //contact page
 app.get("/contact",function(req,res){
-  res.render("contact",{contactContent:contactContent});
+  let text = "LOGIN";
+  let path = "login";
+  if(req.isAuthenticated()){
+    text="LOGOUT";
+    path="logmeout"
+  }
+  res.render("contact",{contactContent:contactContent,text:text,path:path});
 });
 
 
@@ -183,7 +195,14 @@ app.get("/contact",function(req,res){
 
 //about page
 app.get("/about",function(req,res){
-  res.render("about",{aboutContent:aboutContent});
+  let text = "LOGIN";
+  let path = "login";
+  if(req.isAuthenticated()){
+    text="LOGOUT";
+    path="logmeout"
+  }
+
+  res.render("about",{aboutContent:aboutContent,text:text,path:path});
 });
 
 
@@ -193,11 +212,18 @@ app.get("/about",function(req,res){
 //compose page
 app.get("/compose",function(req,res){
 
+  let text = "LOGIN";
+  let path = "login";
   if(req.isAuthenticated()){
-      res.render("compose");
+    text="LOGOUT";
+    path="logmeout"
+  }
+
+  if(req.isAuthenticated()){
+      res.render("compose",{text:text,path:path});
     }
     else{
-      res.render("unauthorized");
+      res.render("unauthorized",{text:text,path:path});
     }
 });
 
@@ -205,14 +231,40 @@ app.get("/compose",function(req,res){
 
 //add new post to website
 app.post("/compose",function(req,res){
-const post = new Post ({
-  title : req.body.postTitle,
-  content : req.body.postBody
-});
 
-post.save();
+  let text = "LOGIN";
+  let path = "login";
+  if(req.isAuthenticated()){
+    text="LOGOUT";
+    path="logmeout"
+  }
 
-res.redirect("/");
+
+if(req.isAuthenticated()){
+
+  const post = new Post ({
+    title : req.body.postTitle,
+    content : req.body.postBody
+  });
+
+  post.save();
+
+  User.findOne({email:req.user.email},function(err,foundUser){
+    if(!err){
+      foundUser.posts.push(post);
+      foundUser.save();
+    }
+  });
+
+  res.redirect("/");
+
+}
+
+else{
+  res.render("unauthorized",{text:text,path:path});
+}
+
+
 });
 
 
@@ -221,13 +273,22 @@ res.redirect("/");
 
 //get post by id
 app.get("/posts/:postID",function(req,res){
+
+  let text = "LOGIN";
+  let path = "login";
+  if(req.isAuthenticated()){
+    text="LOGOUT";
+    path="logmeout"
+  }
+
+
   let chk = (req.params.postID);
 
 
 
   Post.findOne({_id:chk},function(err,post){
     if(!err){
-      res.render("post",{postTitle:post.title,postBody:post.content});
+      res.render("post",{postTitle:post.title,postBody:post.content,text:text,path:path});
 
     }
 
@@ -244,91 +305,193 @@ app.get("/posts/:postID",function(req,res){
 //delete page
 app.get("/delete",function(req,res){
 
+  let text = "LOGIN";
+  let path = "login";
   if(req.isAuthenticated()){
-    Post.find({},function(err,posts){
-      if(!err){
-        res.render("delete",{posts:posts});
-      }
-    });
+    text="LOGOUT";
+    path="logmeout"
+  }
+
+
+
+  if(req.isAuthenticated()){
+
+
+  User.findOne({email:req.user.email},function(err,foundUser){
+    if(!err){
+
+      res.render("delete",{posts:foundUser.posts,text:text,path:path});
     }
-    else{
-      res.render("unauthorized");
-    }
+  });
+}
+else{
+  res.render("unauthorized",{text:text,path:path});
+}
+
 });
+
+
+
+
+
+
 
 
 //update pages
 app.get("/update",function(req,res){
 
+
+  let text = "LOGIN";
+  let path = "login";
   if(req.isAuthenticated()){
-    Post.find({},function(err,posts){
+    text="LOGOUT";
+    path="logmeout"
+  }
+
+  if(req.isAuthenticated()){
+    User.findOne({email:req.user.email},function(err,foundUser){
       if(!err){
-        res.render("update",{posts:posts});
+
+        res.render("update",{posts:foundUser.posts,text:text,path:path});
       }
     });
     }
+
+
+
     else{
-      res.render("unauthorized");
+      res.render("unauthorized",{text:text,path:path});
     }
 
 
 });
+
+
+
+
+
+
+
+
+
 
 
 //delete from database
 
 app.post("/delete",function(req,res){
-  const toDelete = req.body.delete;
+
+const toDelete = req.body.delete;
+
+if(req.isAuthenticated()){
 
   Post.findByIdAndRemove({_id:toDelete},function(err){
-    if(err){
-      console.log(err);
-    }
-
-    else{
-      console.log("Blog Removed");
-      res.redirect("/delete");
+    if(!err){
+      User.findOneAndUpdate({email:req.user.email},{$pull:{posts:{_id:toDelete}}},function(err,foundUser){
+        if(!err){
+          res.redirect("/delete");
+        }
+      });
     }
   });
+
+}
+
 });
+
+
+
+
+
 
 
 
 //update page for blog
 app.post("/update",function(req,res){
-  const toUpdate = req.body.update;
+
+  let text = "LOGIN";
+  let path = "login";
+  if(req.isAuthenticated()){
+    text="LOGOUT";
+    path="logmeout"
+  }
 
 
-  Post.findOne({_id:toUpdate},function(err,post){
-    if(!err){
-      res.render("updating",{postTitle:post.title,postContent:post.content,postId:toUpdate});
+const toUpdate = req.body.update;
 
 
-    }
+  if(req.isAuthenticated()){
 
 
-  });
+    Post.findOne({_id:toUpdate},function(err,post){
+      if(!err){
+        res.render("updating",{postTitle:post.title,postContent:post.content,postId:toUpdate,text:text,path:path});
+
+
+      }
+
+
+    });
+
+  }
+
+  else{
+    res.render("unauthorized",{text:text,path:path});
+  }
+
+
+
 
 });
+
+
+
+
+
+
+
+
 
 
 //update the respective blog
 app.post("/updating",function(req,res){
+
+  let text = "LOGIN";
+  let path = "login";
+  if(req.isAuthenticated()){
+    text="LOGOUT";
+    path="logmeout"
+  }
+
+
   const updatedPostBody = req.body.postBody;
   const postId = req.body.update;
 
-
+if(req.isAuthenticated()){
 
   Post.findOneAndUpdate({_id:postId},{ $set: {"content":updatedPostBody}},function(err){
     if(!err){
-      console.log("Blog Updated");
-      res.redirect("/");
+
+       User.findOneAndUpdate({email:req.user.email,"posts._id":postId},{$set:{"posts.$.content":updatedPostBody}},function(err){
+
+         res.redirect("/update");
+          });
+
+
     }
 
+});
 
-  });
+}
+
+
+else{
+  res.render("unauthorized",{text:text,path:path});
+}
 
 });
+
+
+
 
 
 
@@ -336,30 +499,55 @@ app.post("/updating",function(req,res){
 
 //later code 8
 app.get("/login",function(req,res){
+
+  let text = "LOGIN";
+  let path = "login";
+  if(req.isAuthenticated()){
+    text="LOGOUT";
+    path="logmeout"
+  }
+
   if(req.isAuthenticated()){
       res.render("logout");
     }
     else{
-      res.render("login");
+      res.render("login",{text:text,path:path});
     }
 });
+
+
+
+
 
 
 //later code 9
 app.get("/logout",function(req,res){
+
+  let text = "LOGIN";
+  let path = "login";
   if(req.isAuthenticated()){
-      res.render("logout");
+    text="LOGOUT";
+    path="logmeout"
+  }
+
+
+  if(req.isAuthenticated()){
+      res.render("logout",{text:text,path:path});
     }
     else{
-      res.render("login");
+      res.render("login",{text:text,path:path});
     }
 });
+
+
+
+
 
 
 
 //later code 10
 app.get("/logmeout",function(req,res){
-  console.log("ok");
+  
   req.logout(function(err){
     if(err){
       console.log(err);
@@ -371,12 +559,24 @@ app.get("/logmeout",function(req,res){
 
 
 
+
+
+
 //error routes
 app.get("/:topic",function(req,res){
+
+  let text = "LOGIN";
+  let path = "login";
+  if(req.isAuthenticated()){
+    text="LOGOUT";
+    path="logmeout"
+  }
+
+
   const err2 = (req.params.topic);
 
   if(err2 != "compose" || err2 != "contact"||err2 != "about"){
-    res.render("error");
+    res.render("error",{text:text,path:path});
   }
 });
 
