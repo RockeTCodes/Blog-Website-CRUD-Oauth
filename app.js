@@ -126,7 +126,7 @@ passport.deserializeUser(function(id,done){
 passport.use(new GoogleStrategy({
     clientID:    "199248773457-3vdt119b9tvj7oo2ap4ho1u5hghvp424.apps.googleusercontent.com",
     clientSecret: "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",
-    callbackURL: "http://lonely-frog-dungarees.cyclic.app/auth/google/logout",
+    callbackURL: "https://lonely-frog-dungarees.cyclic.app/auth/google/logout",
     passReqToCallback   : true
   },
   function(request, accessToken, refreshToken, profile, done) {
